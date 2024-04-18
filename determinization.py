@@ -1,11 +1,3 @@
-"""
-Padrão da entrada
-
-<número de estados>;<estado inicial>;{<estados finais>};{<alfabeto>};<transições>
-
-Os estados são sempre identificados com letras maiúsculas.
-As transições são da forma <estado origem>,<simbolo do alfabeto>,<estado destino>.
-"""
 from collections import defaultdict
 
 def read_input(entry:str=None) -> tuple[set[str], str, set[str], set[str], list[tuple[str]]]:
