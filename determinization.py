@@ -1,8 +1,50 @@
-from collections import defaultdict
-from Utilis import read_input, print_output
+"""
+Padrão da entrada
 
-DEBUG = False
+<número de estados>;<estado inicial>;{<estados finais>};{<alfabeto>};<transições>
+
+Os estados são sempre identificados com letras maiúsculas.
+As transições são da forma <estado origem>,<simbolo do alfabeto>,<estado destino>.
+"""
+
+DEBUG_S = False
+DEBUG_F = False
 TESTE = 0
+from collections import defaultdict
+
+def read_input(entry:str=None) -> tuple[set[str], str, set[str], set[str], list[tuple[str]]]:
+    '''
+    Lê a entrada no formato especificado.
+    '''
+    if not entry:
+        entry = input().split(";")
+    else:
+        entry = (entry.strip()).split(";")
+    num_states = int(entry[0])
+    initial_state = entry[1]
+    final_states = set(entry[2].strip("{}").split(","))
+    alphabet = set(entry[3].strip("{}").split(","))
+    transitions = [tuple(t.split(",")) for t in entry[4:]]
+    return num_states, initial_state, final_states, alphabet, transitions
+
+
+def print_output(new_transitions: defaultdict, new_initial_state:str,
+                 new_final_states:set, alphabet:set) -> None:
+    '''
+    Imprime o AFD resultante.
+    '''
+    # print(sorted(new_transitions.items()), end="\n\n")
+    output_string = f"{len(new_transitions.keys())};"
+    output_string += "{" + "".join(sorted(new_initial_state)) + "};"
+    final_states_matrix = ["".join(j for j in i) for i in sorted(new_final_states)]
+    output_string += "{{" + "},{".join(final_states_matrix) + "}};"
+    output_string += "{" + ",".join(sorted(alphabet)) + "}"
+    for state, transitions in sorted(new_transitions.items()):
+        for symbol, next_state in sorted(transitions.items()):
+            src = "{" + ''.join(state) +"}"
+            dst = "{" + ''.join(next_state) +"}"
+            output_string += f";{src},{symbol},{dst}"
+    print(output_string, end="\n\n")
 
 # Calcula o fecho épsilon transitivo de um conjunto de estados.
 def closure(states, transitions: list[tuple[str]]) -> set[str]:
@@ -18,10 +60,6 @@ def closure(states, transitions: list[tuple[str]]) -> set[str]:
     return closure_set
 
 def determinize():
-    if DEBUG:
-        global TESTE
-        TESTE += 1
-        print("\n----------------------------\nDeterminização", TESTE, "iniciada.", end="\n\n")
     num_states, initial_state, final_states, alphabet, transitions = read_input()
     is_epsilon = any(sym == "&" for _, sym, _ in transitions)
     alphabet.discard("&")
@@ -32,10 +70,6 @@ def determinize():
     states_queue = [set(initial_state)]
 
     while states_queue:
-        if DEBUG:
-            print("states queue =", states_queue,
-                  "\nnew transitions =", sorted(new_transitions.items()),
-                  "\nnew final states =", new_final_states, end="\n\n")
         state = states_queue.pop(0)
         state_tuple = tuple(sorted(state))
         if any(s in final_states for s in state_tuple):
