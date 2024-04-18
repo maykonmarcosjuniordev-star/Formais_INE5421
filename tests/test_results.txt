@@ -1,6 +1,6 @@
-4;<A>;{AD};{a,b};A,a,A,B;A,b,A;A,B,a,A,B;A,B,b,A,C;A,C,a,A,B;A,C,b,A,D;A,D,a,A,B;A,D,b,A
+4;{A};{{AD}};{a,b};A,a,A,B;A,b,A;A,B,a,A,B;A,B,b,A,C;A,C,a,A,B;A,C,b,A,D;A,D,a,A,B;A,D,b,A
 
-4;<A>;{ABC,BC,C};{&,1,2,3};,&,;,1,;,2,;,3,;A,B,C,&,B,C;A,B,C,1,A,B,C;A,B,C,2,B,C;A,B,C,3,C;B,C,&,C;B,C,1,;B,C,2,B,C;B,C,3,C;C,&,;C,1,;C,2,;C,3,C
+4;{A};{{ABC},{BC},{C}};{&,1,2,3};,&,;,1,;,2,;,3,;A,B,C,&,B,C;A,B,C,1,A,B,C;A,B,C,2,B,C;A,B,C,3,C;B,C,&,C;B,C,1,;B,C,2,B,C;B,C,3,C;C,&,;C,1,;C,2,;C,3,C
 
-8;<P>;{PQRS,PQS,PRS,PS};{0,1};P,0,P,Q;P,1,P;P,Q,0,P,Q,R;P,Q,1,P,R;P,Q,R,0,P,Q,R,S;P,Q,R,1,P,R;P,Q,R,S,0,P,Q,R,S;P,Q,R,S,1,P,R,S;P,Q,S,0,P,Q,R,S;P,Q,S,1,P,R,S;P,R,0,P,Q,S;P,R,1,P;P,R,S,0,P,Q,S;P,R,S,1,P,S;P,S,0,P,Q,S;P,S,1,P,S
+8;{P};{{PQRS},{PQS},{PRS},{PS}};{0,1};P,0,P,Q;P,1,P;P,Q,0,P,Q,R;P,Q,1,P,R;P,Q,R,0,P,Q,R,S;P,Q,R,1,P,R;P,Q,R,S,0,P,Q,R,S;P,Q,R,S,1,P,R,S;P,Q,S,0,P,Q,R,S;P,Q,S,1,P,R,S;P,R,0,P,Q,S;P,R,1,P;P,R,S,0,P,Q,S;P,R,S,1,P,S;P,S,0,P,Q,S;P,S,1,P,S
 

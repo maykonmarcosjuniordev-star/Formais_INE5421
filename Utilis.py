@@ -11,7 +11,7 @@ from collections import defaultdict
 DEBUG_S = False
 DEBUG_F = False
 
-def read_input(entry=None):
+def read_input(entry:str=None) -> tuple[set[str], str, set[str], set[str], list[tuple[str]]]:
     '''
     Lê a entrada no formato especificado.
     '''
@@ -24,21 +24,24 @@ def read_input(entry=None):
     final_states = set(entry[2].strip("{}").split(","))
     alphabet = set(entry[3].strip("{}").split(","))
     transitions = [tuple(t.split(",")) for t in entry[4:]]
+    src_states = set(i[0] for i in transitions)
+    dst_states = set(i[2] for i in transitions)
+    states = src_states.union(dst_states)
     if DEBUG_S:
         table = make_table(transitions, alphabet)
         print_table(table)
-    return num_states, initial_state, final_states, alphabet, transitions
+    return states, initial_state, final_states, alphabet, transitions
 
 
 def print_output(new_transitions: defaultdict, new_initial_state:str,
-                 new_final_states:set, alphabet:set):
+                 new_final_states:set, alphabet:set) -> None:
     '''
     Imprime o AFD resultante.
     '''
     output_string = f"{len(new_transitions)};"
-    output_string += f"<{new_initial_state}>;"
+    output_string += "{" + new_initial_state + "};"
     final_states_matrix = ["".join(j for j in i) for i in sorted(new_final_states)]
-    output_string += "{" + ",".join(final_states_matrix) + "};"
+    output_string += "{{" + "},{".join(final_states_matrix) + "}};"
     output_string += "{" + ",".join(sorted(alphabet)) + "}"
     for state, transitions in sorted(new_transitions.items()):
         for symbol, next_state in sorted(transitions.items()):
@@ -50,13 +53,13 @@ def print_output(new_transitions: defaultdict, new_initial_state:str,
         print_table(table)
 
 
-def make_table(transitions:list[tuple[str]], alphabet:set[str]):
+def make_table(transitions:list[tuple[str]], alphabet:set[str]) -> defaultdict[dict[str]]:
     '''
     Cria uma tabela de transições a partir da entrada.
     '''
     # print(transitions, alphabet)
     src_states = set(i[0] for i in transitions)
-    dst_states = set(",".join(i[2:]) for i in transitions)
+    dst_states = set(i[2] for i in transitions)
     states = src_states.union(dst_states)
     table = defaultdict(dict)
     print(transitions)
