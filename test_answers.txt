@@ -1,0 +1,5 @@
+5;A;{D,E};{a,b};A,a,B;A,a,C;A,b,A;B,a,B;B,b,D;C,a,C;C,b,E;D,a,C;D,b,D;E,a,E;E,b,B
+7;A;{F,G};{0,1};A,0,B;A,0,C;A,1,D;A,1,E;B,0,B;B,1,A;C,0,F;C,1,C;D,0,D;D,1,D;E,0,E;E,1,G;F,0,A;F,1,F;G,0,G;G,1,G
+7;A;{D,E,F,G};{a,b,c};A,a,B;A,b,C;A,c,A;B,a,B;B,b,F;B,c,D;C,a,E;C,b,C;C,c,G;D,a,D;D,b,D;D,c,D;E,a,E;E,b,E;E,c,E;F,a,F;F,b,F;F,c,F;G,a,G;G,b,G;G,c,G
+8;A;{F,G};{a,b};A,a,B;A,a,C;A,b,D;A,b,E;B,a,B;B,b,A;C,a,F;C,b,C;D,a,D;D,b,D;E,a,E;E,b,G;F,a,A;F,b,F;G,a,G;G,b,A
+6;A;{E,F};{0,1};A,0,B;A,1,A;B,0,C;B,1,D;C,0,E;C,1,C;D,0,D;D,1,F;E,0,C;E,1,E;F,0,F;F,1,D

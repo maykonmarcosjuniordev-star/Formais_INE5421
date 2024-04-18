@@ -1,35 +1,14 @@
 from collections import defaultdict
+from Utilis import read_input, print_output
 
-
-# Lê a entrada no formato especificado.
-def read_input():
-    entry = input().split(";")
-    num_states = int(entry[0])
-    initial_state = entry[1]
-    final_states = set(entry[2].strip("{}").split(","))
-    alphabet = set(entry[3].strip("{}").split(","))
-    transitions = entry[4:]
-    transitions = [tuple(t.split(",")) for t in transitions]
-    return num_states, initial_state, final_states, alphabet, transitions
-
-
-# Imprime o AFD resultante.
-def print_output(new_transitions, new_initial_state, new_final_states, alphabet):
-    print(f"{len(new_transitions)};", end="")
-    print(f"<{new_initial_state}>;", end="")
-    final_states_matrix = ["".join(j for j in i) for i in sorted(new_final_states)]
-    print("{" + ",".join(final_states_matrix) + "};", end="")
-    print("{" + ",".join(sorted(alphabet)) + "};", end="")
-    for state, transitions in sorted(new_transitions.items()):
-        for symbol, next_state in sorted(transitions.items()):
-            print(f"{','.join(state)},{symbol},{','.join(next_state)};", end="")
-    print()
 
 def minimize_dfa(num_states, initial_state, final_states, alphabet, transitions):
     """
     Minimiza um AFD usando o algoritmo de minimização por partições.
     """
-    states = set(src for src, _, _ in transitions).union(dst for _, _, dst in transitions)
+    src_states = set(src for src, _, _ in transitions)
+    dst_states = set(dst for _, _, dst in transitions)
+    states = src_states.union(dst_states)
     non_final_states = states - final_states
     partitions = [non_final_states, final_states]
 

@@ -1,0 +1,56 @@
+1. AFND que aceita palavras sobre {a, b} que contêm um número par de a's ou um número ímpar de b's:
+ -> 5;A;{D,E};{a,b};A,a,B;A,a,C;A,b,A;B,a,B;B,b,D;C,a,C;C,b,E;D,a,C;D,b,D;E,a,E;E,b,B
+Estado	a	b
+    A	B,C	A
+    B	B	D
+    C	C	E
+    D	C	D
+    E	E	B
+
+------------------------------------------------------
+2. AFND que aceita palavras sobre {0, 1} que contêm um número de 0's múltiplo de 3 ou um número de 1's múltiplo de 4:
+ -> 7;A;{F,G};{0,1};A,0,B;A,0,C;A,1,D;A,1,E;B,0,B;B,1,A;C,0,F;C,1,C;D,0,D;D,1,D;E,0,E;E,1,G;F,0,A;F,1,F;G,0,G;G,1,G
+Estado	0	1
+    A	B,C	D,E
+    B	B	A
+    C	F	C
+    D	D	D
+    E	E	G
+    F	A	F
+    G	G	G
+
+------------------------------------------------------
+3. AFND que aceita palavras sobre {a, b, c} que não contêm a substring "abb" e não contêm a substring "cac":
+ -> 7;A;{D,E,F,G};{a,b,c};A,a,B;A,b,C;A,c,A;B,a,B;B,b,F;B,c,D;C,a,E;C,b,C;C,c,G;D,a,D;D,b,D;D,c,D;E,a,E;E,b,E;E,c,E;F,a,F;F,b,F;F,c,F;G,a,G;G,b,G;G,c,G
+
+Estado	a	b	c
+    A	B	C	A
+    B	B	F	D
+    C	E	C	G
+    D	D	D	D
+    E	E	E	E
+    F	F	F	F
+    G	G	G	G
+
+------------------------------------------------------
+4. AFND que aceita palavras sobre {a, b} que contêm um número de a's múltiplo de 3 ou um número de b's divisível por 5:
+ -> 8;A;{F,G};{a,b};A,a,B;A,a,C;A,b,D;A,b,E;B,a,B;B,b,A;C,a,F;C,b,C;D,a,D;D,b,D;E,a,E;E,b,G;F,a,A;F,b,F;G,a,G;G,b,A
+Estado	a	b
+    A	B,C	D,E
+    B	B	A
+    C	F	C
+    D	D	D
+    E	E	G
+    F	A	F
+    G	G	A
+
+------------------------------------------------------
+5. AFND que aceita palavras sobre {0, 1} que começam com 0 e possuem um número ímpar de 0's após o segundo símbolo:
+ -> 6;A;{E,F};{0,1};A,0,B;A,1,A;B,0,C;B,1,D;C,0,E;C,1,C;D,0,D;D,1,F;E,0,C;E,1,E;F,0,F;F,1,D
+Estado	0	1
+    A	B	A
+    B	C	D
+    C	E,C	C
+    D	D	F
+    E	C	E
+    F	F	D

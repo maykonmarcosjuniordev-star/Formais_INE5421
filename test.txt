@@ -1,0 +1,1 @@
+5;A;{D,E};{a,b};A,a,B;A,a,C;A,b,A;B,a,B;B,b,D;C,a,C;C,b,E;D,a,C;D,b,D;E,a,E;E,b,B

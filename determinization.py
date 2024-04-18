@@ -1,29 +1,5 @@
 from collections import defaultdict
-
-
-# Lê a entrada no formato especificado.
-def read_input():
-    entry = input().split(";")
-    num_states = int(entry[0])
-    initial_state = entry[1]
-    final_states = set(entry[2].strip("{}").split(","))
-    alphabet = set(entry[3].strip("{}").split(","))
-    transitions = entry[4:]
-    transitions = [tuple(t.split(",")) for t in transitions]
-    return num_states, initial_state, final_states, alphabet, transitions
-
-
-# Imprime o AFD resultante.
-def print_output(new_transitions, new_initial_state, new_final_states, alphabet):
-    print(f"{len(new_transitions)};", end="")
-    print(f"<{new_initial_state}>;", end="")
-    final_states_matrix = ["".join(j for j in i) for i in sorted(new_final_states)]
-    print("{" + ",".join(final_states_matrix) + "};", end="")
-    print("{" + ",".join(sorted(alphabet)) + "};", end="")
-    for state, transitions in sorted(new_transitions.items()):
-        for symbol, next_state in sorted(transitions.items()):
-            print(f"{','.join(state)},{symbol},{','.join(next_state)};", end="")
-    print()
+from Utilis import read_input, print_output
 
 
 # Determiniza um AFND sem épsilon-transições.
