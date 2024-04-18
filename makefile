@@ -16,21 +16,21 @@ minimize:
 
 determinize-test:
 	@(python3 determinization.py < test.txt) > test_results.txt
-	@cat test_results.txt | diff test_answers.txt -
+	@cat tests/test_results.txt | diff tests/test_answers.txt -
 
 minimize-test:
-	@(python3 minimization.py < test.txt) > test_results.txt
-	@cat test_results.txt | diff test_answers.txt -
+	@(python3 minimization.py < tests/test.txt) > tests/test_results.txt
+	@cat tests/test_results.txt | diff tests/test_answers.txt -
 
 determinize-test-verbose:
-	@python3 determinization.py < test.txt
+	@python3 determinization.py < tests/test.txt
 
 minimize-test-verbose:
-	@python3 minimization.py < test.txt
+	@python3 minimization.py < tests/test.txt
 
 determinize-and-minimize-test:
-	@((python3 determinization.py) < test.txt | python3 minimization.py) > test_results.txt
-	@cat test_results.txt | diff test_answers.txt -
+	@((python3 determinization.py) < tests/test.txt | python3 minimization.py) > tests/test_results.txt
+	@cat tests/test_results.txt | diff tests/test_answers.txt -
 
 determinize-and-minimize-test-verbose:
-	@python3 determinization.py < test.txt | python3 minimization.py
+	@python3 determinization.py < tests/test.txt | python3 minimization.py
