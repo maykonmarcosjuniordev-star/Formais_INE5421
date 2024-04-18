@@ -15,7 +15,7 @@ minimize:
 	@python3 minimization.py
 
 determinize-test:
-	@(python3 determinization.py < test.txt) > test_results.txt
+	@(python3 determinization.py < tests/test.txt) > tests/test_results.txt
 	@cat tests/test_results.txt | diff tests/test_answers.txt -
 
 minimize-test:
