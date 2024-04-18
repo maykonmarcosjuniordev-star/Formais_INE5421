@@ -9,6 +9,9 @@ def minimize_dfa(num_states, initial_state, final_states, alphabet, transitions)
     src_states = set(src for src, _, _ in transitions)
     dst_states = set(dst for _, _, dst in transitions)
     states = src_states.union(dst_states)
+    transitions_dict = defaultdict(dict)
+    for src, sym, dst in transitions:
+        transitions_dict[src][sym] = dst
     non_final_states = states - final_states
     partitions = [non_final_states, final_states]
 
@@ -17,7 +20,7 @@ def minimize_dfa(num_states, initial_state, final_states, alphabet, transitions)
         for partition in partitions:
             partition_groups = defaultdict(set)
             for state in partition:
-                group_key = tuple(sorted((transitions[(state, sym)] for sym in alphabet)))
+                group_key = tuple(sorted((transitions_dict[state][sym] for sym in alphabet)))
                 partition_groups[group_key].add(state)
             new_partitions.extend(partition_groups.values())
         if len(new_partitions) == len(partitions):
