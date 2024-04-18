@@ -45,9 +45,15 @@ def minimize_dfa(num_states, initial_state, final_states, alphabet, transitions)
     return new_transitions, new_initial_state, {new_final_states}, alphabet
 
 def minimize():
-    states, initial_state, final_states, alphabet, transitions = read_input()
-    new_transitions, new_initial_state, new_final_states, new_alphabet = minimize_dfa(states, initial_state, final_states, alphabet, transitions)
-    print_output(new_transitions, new_initial_state, new_final_states, new_alphabet)
+    num_states, initial_state, final_states, alphabet, transitions = read_input()
+    (new_transitions, new_initial_state,
+     new_final_states, new_alphabet) = minimize_dfa(num_states,
+                                                    initial_state,
+                                                    final_states,
+                                                    alphabet,
+                                                    transitions)
+    print_output(new_transitions, new_initial_state,
+                 new_final_states, new_alphabet)
 
 while True:
     try:

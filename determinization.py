@@ -1,8 +1,11 @@
 from collections import defaultdict
 from Utilis import read_input, print_output
 
+DEBUG = False
+TESTE = 0
+
 # Calcula o fecho épsilon transitivo de um conjunto de estados.
-def closure(states, transitions):
+def closure(states, transitions: list[tuple[str]]) -> set[str]:
     closure_set = set(states)
     queue = list(states)
     while queue:
@@ -15,15 +18,24 @@ def closure(states, transitions):
     return closure_set
 
 def determinize():
-    states, initial_state, final_states, alphabet, transitions = read_input()
+    if DEBUG:
+        global TESTE
+        TESTE += 1
+        print("\n----------------------------\nDeterminização", TESTE, "iniciada.", end="\n\n")
+    num_states, initial_state, final_states, alphabet, transitions = read_input()
     is_epsilon = any(sym == "&" for _, sym, _ in transitions)
+    alphabet.discard("&")
     new_transitions = defaultdict(dict)
     new_final_states = set()
-    states_queue = [(initial_state,)]
     if is_epsilon:
-        states_queue = [closure({initial_state}, transitions)]
+        initial_state = closure({initial_state}, transitions)
+    states_queue = [set(initial_state)]
 
     while states_queue:
+        if DEBUG:
+            print("states queue =", states_queue,
+                  "\nnew transitions =", sorted(new_transitions.items()),
+                  "\nnew final states =", new_final_states, end="\n\n")
         state = states_queue.pop(0)
         state_tuple = tuple(sorted(state))
         if any(s in final_states for s in state_tuple):
@@ -38,13 +50,12 @@ def determinize():
             n_states = next_states
             if is_epsilon:
                 n_states = closure(next_states, transitions)
+            if not n_states:
+                continue
             next_state_tuple = tuple(sorted(n_states))
             new_transitions[state_tuple][symbol] = next_state_tuple
             if next_state_tuple not in new_transitions:
-                apendice = next_state_tuple
-                if is_epsilon:
-                    apendice = list(next_state_tuple)
-                states_queue.append(apendice)
+                states_queue.append(set(next_state_tuple))
     print_output(new_transitions, initial_state, new_final_states, alphabet)
 
 while True:
