@@ -12,7 +12,7 @@ DEBUG_F = False
 TESTE = 0
 from collections import defaultdict
 
-def read_input(entry:str=None) -> tuple[set[str], str, set[str], set[str], list[tuple[str]]]:
+def read_input(entry:str=None) -> tuple[int, str, set[str], set[str], list[tuple[str]]]:
     '''
     Lê a entrada no formato especificado.
     '''

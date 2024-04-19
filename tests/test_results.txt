@@ -1,4 +1,4 @@
 5;P;{S};{0,1};P,0,Q;P,1,P;Q,0,T;Q,1,R;R,0,S;R,1,P;S,0,S;S,1,S;T,0,S;T,1,R
 
-12;A;{A,F,N};{a,b,c,d};A,a,B;A,b,E;A,c,K;A,d,G;B,a,C;B,b,H;B,c,L;B,d,Q;C,a,A;C,b,I;C,c,F;C,d,Q;E,a,Q;E,b,F;E,c,H;E,d,N;F,a,Q;F,b,E;F,c,K;F,d,G;G,a,Q;G,b,Q;G,c,Q;G,d,N;H,a,Q;H,b,K;H,c,I;H,d,Q;I,a,Q;I,b,L;I,c,E;I,d,Q;K,a,Q;K,b,H;K,c,L;K,d,Q;L,a,Q;L,b,I;L,c,F;L,d,Q;N,a,Q;N,b,Q;N,c,Q;N,d,G;Q,a,Q;Q,b,Q;Q,c,Q;Q,d,Q
+11;A;{A,F,N};{a,b,c,d};A,a,B;A,b,E;A,c,K;A,d,G;B,a,C;B,b,H;B,c,L;C,a,A;C,b,I;C,c,F;E,b,F;E,c,H;E,d,N;F,b,E;F,c,K;F,d,G;G,d,N;H,b,K;H,c,I;I,b,L;I,c,E;K,b,H;K,c,L;L,b,I;L,c,F;N,d,G
 

@@ -20,11 +20,50 @@ while (Q é não-vazio) do
 end;
 """
 
-def minimize(initial_state, final_states, alphabet, transitions):
+def remove_dead_and_unreacheable_states(initial_state:str, final_states:set[str],
+                                       alphabet:set[str], transitions:list[tuple[str]]):
     src_states = set(src for src, _, _ in transitions)
     dst_states = set(dst for _, _, dst in transitions)
-    total_states = src_states.union(dst_states)
-    non_final_states = set(total_states) - set(final_states)
+    states = src_states.union(dst_states)
+
+    # first remove the unreacheable states
+    reacheable_states = set()
+    stack = [initial_state]
+    while stack:
+        state = stack.pop(0)
+        reacheable_states.add(state)
+        for src, sym, dst in transitions:
+            if src == state and dst not in reacheable_states:
+                stack.append(dst)
+    unreacheable_states = states - reacheable_states
+    for src, sym, dst in transitions:
+        if src in unreacheable_states:
+            transitions.remove((src, sym, dst))
+    states = reacheable_states
+
+    # now for the dead states
+    queue = sorted(final_states)
+    living_states = set()
+    while queue:
+        state = queue.pop(0)
+        living_states.add(state)
+        for src, sym, dst in transitions:
+            if dst == state and src not in living_states:
+                queue.append(src)
+    dead_states = states - living_states
+    for state in dead_states:
+        states.discard(state)
+        for src, sym, dst in transitions:
+            if src == state or dst == state:
+                transitions.remove((src, sym, dst))
+    return living_states, transitions
+
+def minimize(initial_state:str, final_states:set[str],
+             alphabet:set[str], transitions:list[tuple[str]]):
+    states, transitions = remove_dead_and_unreacheable_states(initial_state,
+                                                              final_states,
+                                                              alphabet, transitions)
+    non_final_states = set(states) - set(final_states)
     equivalence_classes = [final_states, non_final_states]
     cls_queue = [final_states]
     while cls_queue:
@@ -32,7 +71,7 @@ def minimize(initial_state, final_states, alphabet, transitions):
             print("\n\ncls_queue =", cls_queue)
         eq_cls = cls_queue.pop()
         for sym in alphabet:
-            X = {src for src, s, dst in transitions if (src in total_states and s == sym and dst in eq_cls)}
+            X = {src for src, s, dst in transitions if (src in states and s == sym and dst in eq_cls)}
             reachers = [i for i in equivalence_classes if X.intersection(i)]
             if DEBUG:
                 print("----\nsym =", sym)
