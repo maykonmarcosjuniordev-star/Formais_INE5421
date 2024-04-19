@@ -41,15 +41,13 @@ def print_output(new_transitions: defaultdict, new_initial_state:str,
     '''
     # print(sorted(new_transitions.items()), end="\n\n")
     output_string = f"{len(new_transitions.keys())};"
-    output_string += "{" + "".join(sorted(new_initial_state)) + "};"
+    output_string += "".join(sorted(new_initial_state)) + ";"
     final_states_matrix = ["".join(j for j in i) for i in sorted(new_final_states)]
-    output_string += "{{" + "},{".join(final_states_matrix) + "}};"
+    output_string += "{" + ",".join(final_states_matrix) + "};"
     output_string += "{" + ",".join(sorted(alphabet)) + "}"
     for state, transitions in sorted(new_transitions.items()):
         for symbol, next_state in sorted(transitions.items()):
-            src = "{" + ''.join(state) +"}"
-            dst = "{" + ''.join(next_state) +"}"
-            output_string += f";{src},{symbol},{dst}"
+            output_string += f";{state},{symbol},{next_state}"
     print(output_string, end="\n\n")
     
     if DEBUG_F:
@@ -58,6 +56,7 @@ def print_output(new_transitions: defaultdict, new_initial_state:str,
         global TESTE
         print("\n-------------\nTESTE", TESTE, "-  F")
         print_table(table)
+        print("-------FIM DO TESTE------\n")
         TESTE += 1
         
 
@@ -65,7 +64,6 @@ def make_table(transitions:list[tuple[str]], alphabet:set[str]) -> defaultdict[d
     '''
     Cria uma tabela de transições a partir da entrada.
     '''
-    print(transitions)
     table = defaultdict(dict)
     src_states = set(i[0] for i in transitions)
     dst_states = set(i[2] for i in transitions)
@@ -93,10 +91,10 @@ def print_table(table: defaultdict[dict[str]]):
     output_string += "Estado   "
     simbols = sorted(table_set[0][1].keys())
     for i in simbols:
-        output_string += f"    {i}      "
-    output_string += "\n-------------------------------------------\n"
+        output_string += f"    {i}       "
+    output_string += "\n---------------------------------------------------\n"
     for state, transitions in table_set:
-        src = state.ljust(6)
+        src = state.ljust(7)
         output_string += src
         for sym in simbols:
             destination = transitions[sym].ljust(6)
