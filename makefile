@@ -1,8 +1,8 @@
 all:
 	@echo "choose a target for make:"
-	@echo "-> determinize, minimize,"
-	@echo "-> determinize-test, minimize-test,"
-	@echo "-> determinize-test-verbose, minimize-test-verbose,"
+	@echo "-> determinize, minimize, conversion,"
+	@echo "-> determinize-test, minimize-test, conversion-test,m"
+	@echo "-> determinize-test-verbose, minimize-test-verbose, conversion-test-verbose"
 	@echo "-> determinize-and-minimize-test or determinize-and-minimize-test-verbose"
 
 clean:
@@ -34,3 +34,13 @@ determinize-and-minimize-test:
 
 determinize-and-minimize-test-verbose:
 	@python3 determinization.py < tests/test.txt | python3 minimization.py
+
+conversion:
+	@python3 ER_DFA_conversion.py
+
+conversion-test:
+	@python3 ER_DFA_conversion.py < tests/test.txt > tests/test_results.txt
+	@cat tests/test_results.txt | diff tests/test_answers.txt -
+
+conversion-test-verbose:
+	@python3 ER_DFA_conversion.py < tests/test.txt

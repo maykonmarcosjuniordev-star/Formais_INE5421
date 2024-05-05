@@ -1,4 +1,0 @@
-5;P;{S};{0,1};P,0,Q;P,1,P;Q,0,T;Q,1,R;R,0,S;R,1,P;S,0,S;S,1,S;T,0,S;T,1,R
-
-11;A;{A,F,N};{a,b,c,d};A,a,B;A,b,E;A,c,K;A,d,G;B,a,C;B,b,H;B,c,L;C,a,A;C,b,I;C,c,F;E,b,F;E,c,H;E,d,N;F,b,E;F,c,K;F,d,G;G,d,N;H,b,K;H,c,I;I,b,L;I,c,E;K,b,H;K,c,L;L,b,I;L,c,F;N,d,G
-
