@@ -46,7 +46,7 @@ def fit_regex(regex):
         fitted_regex.append(char)
         if not c1:
             leaf = Node(char)
-            leaves.append(leaf)
+            leaves.append((leaf, char))
             leaf.leaf = len(leaves)
             leaf.firstpos.add(leaf.leaf)
             leaf.lastpos.add(leaf.leaf)
@@ -54,6 +54,7 @@ def fit_regex(regex):
                 leaf.nullable = True
                 leaf.firstpos = set()
                 leaf.lastpos = set()
+                leaves.pop()
             elif not c2:
                 alphabet.append(char)
             fitted_regex[-1] = leaf
@@ -125,7 +126,7 @@ def build_tree(regex, leaves):
     tree = parse_regex(regex)
     # Raiz é a concatenação da regex com '#'
     end = Node('#')
-    leaves.append(end)
+    leaves.append((end, '#'))
     end.leaf = len(leaves)
     end.firstpos.add(end.leaf)
     end.lastpos.add(end.leaf)
@@ -193,59 +194,105 @@ def compute_followpos(node:Node):
         compute_followpos(node.pai)
         node.followpos |= node.pai.followpos.copy()
 
+'''
+Construa o autômato D-States o conjunto de estados do AFD D e D-Tran a função de transição para D, como segue:
+Inicialize o autômato apenas com o estado firstpos(n0) (não marcado), onde n0 é a raiz da árvore sintática para (r)#
+Para cada estado não marcado S em D-States
+ - marque S
+ - para cada símbolo SYM no alfabeto
+    - U = {}
+    - para cada p in S[SYM]
+        - U = união(U, followpos(p))
+    - se U não estiver em D-States	
+        - Adicione U em D-State como um estado não marcado
+    - D-Tran[S][SYM] = U
+'''
+
 def build_dfa(regex):
     alphabet, new_regex, leaves = fit_regex(regex)
     tree = build_tree(new_regex, leaves)
     compute_firstpos(tree)
     compute_lastpos(tree)
     follow_pos = defaultdict(set)
-    for leaf in leaves:
+    leaves_by_sym = defaultdict(list)
+    for leaf, char in leaves:
         compute_followpos(leaf)
         follow_pos[leaf.leaf] = leaf.followpos
-    end = tree.left
+        leaves_by_sym[char].append(leaf.leaf)
 
-    transitions = defaultdict(dict)
-    states = tree.firstpos.copy() | tree.lastpos.copy()
     
-    for state in states:
-        char = leaves[state-1].value
-        for leaf in leaves:
-            char2 = leaves[leaf.leaf-1].value
-            if char == char2:
-                next_state = leaf.followpos.copy()
-                transitions[state][char] = (next_state)
+    Dstates = []
+    Dtran = defaultdict(dict)
+    start_state = tuple(sorted(list(tree.firstpos)))
+    # s for s in Dstates if leaves[-1][0].leaf in s]
+    final_states = set()
+    Dstates.append(start_state)
+    for state in Dstates:
+        if leaves[-1][0].leaf in state:
+            final_states.add(state)
+        for char in alphabet:
+            U = set()
+            for p in leaves_by_sym[char]:
+                if p in state:
+                    U |= follow_pos[p]
+            U = tuple(sorted(list(U)))
+            if U:
+                if U not in Dstates:
+                    Dstates.append(U)
+                Dtran[state][char] = U
     
-    start_state = tree.firstpos
-    final_states = tree.lastpos
-    
-    return states, transitions, start_state, final_states
+    return Dstates, Dtran, start_state, final_states, alphabet
 
+def print_output(new_transitions: defaultdict, new_initial_state:str,
+                 new_final_states:set, alphabet:set) -> None:
+    '''
+    Imprime o AFD resultante.
+    '''
+    # print(sorted(new_transitions.items()), end="\n\n")
+    output_string = f"{len(new_transitions.keys())};"
+    start_state = '{' + ",".join(map(str, new_initial_state)) + '};'
+    output_string += start_state
+    final_states = set(['{' + ",".join(map(str, state)) + '}' for state in new_final_states])
+    final_states_matrix = ["".join(j for j in i) for i in sorted(final_states)]
+    output_string += "{" + ",".join(final_states_matrix) + "};"
+    output_string += "{" + ",".join(sorted(list(alphabet))) + "}"
+    new_transitions = {",".join(map(str, state)): {char: ",".join(map(str, next_state)) for char, next_state in sorted(new_transitions[state].items())} for state in sorted(new_transitions)}
+    for state, transitions in sorted(new_transitions.items()):
+        for symbol, next_state in sorted(transitions.items()):
+            src = "{" + ''.join(state) +"}"
+            dst = "{" + ''.join(next_state) +"}"
+            output_string += f";{src},{symbol},{dst}"
+    print(output_string)
 
 def main(regex):
     # build_dfa(regex)
-    states, transitions, start_state, final_states = build_dfa(regex)
+    states, transitions, start_state, final_states, alphabet = build_dfa(regex)
 
-    print("Estados:")
+    print_output(transitions, start_state, final_states, alphabet)
+    '''print("Estados:")
     for state in states:
-        print(" ", state)
+        state = ",".join(map(str, state))
+        print(f'  {{{state}}}')
 
     print("\nTransições:")
     for state, transitions_from_state in transitions.items():
+        state = ",".join(map(str, state))
         for char, next_state in transitions_from_state.items():
-            print(f"  {state} -- {char} --> {next_state}")
+            next_state = ",".join(map(str, next_state))
+            print(f"  {{{state}}} -- {char} --> {{{next_state}}}")
 
-    print("\nEstado Inicial:", start_state)
-    print("Estados Finais:", final_states)
+    print(f"\nEstado Inicial: {{{','.join(map(str, start_state))}}}")
+    final_states = [f'{{{",".join(map(str, state))}}}' for state in final_states]
+    final_states = ",".join(final_states)
+    print("Estados Finais:", final_states)'''
 
 RUN = True
 k = 1
-while RUN:
+while True:
     try:
-        regex = input()
-        print("\n---------------------------------------\nTeste", k)
-        print('Regex:', regex)
+        regex = input().strip()
+        # print("\n---------------------------------------\nTeste", k, "- Regex:", regex)
         main(regex)
-        k += 1
-        RUN = False
+        # k += 1
     except EOFError:
         break
