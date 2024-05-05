@@ -92,7 +92,7 @@ def parse_regex(regex):
             nodes.append(Node(char))
         i += 1
     i = 1
-    while i < len(nodes):
+    while i + 1 < len(nodes):
         node = nodes[i]
         if node.value == '.':
             node.left = nodes[i-1]
@@ -106,7 +106,7 @@ def parse_regex(regex):
         else:
             i += 1
     i = 1
-    while i < len(nodes):
+    while i + 1 < len(nodes):
         node = nodes[i]
         if node.value == '|':
             node.left = nodes[i-1]
@@ -264,27 +264,29 @@ def print_output(new_transitions: defaultdict, new_initial_state:str,
             output_string += f";{src},{symbol},{dst}"
     print(output_string)
 
+DEBUG = False
 def main(regex):
     # build_dfa(regex)
     states, transitions, start_state, final_states, alphabet = build_dfa(regex)
 
     print_output(transitions, start_state, final_states, alphabet)
-    '''print("Estados:")
-    for state in states:
-        state = ",".join(map(str, state))
-        print(f'  {{{state}}}')
+    if DEBUG:
+        print("Estados:")
+        for state in states:
+            state = ",".join(map(str, state))
+            print(f'  {{{state}}}')
 
-    print("\nTransições:")
-    for state, transitions_from_state in transitions.items():
-        state = ",".join(map(str, state))
-        for char, next_state in transitions_from_state.items():
-            next_state = ",".join(map(str, next_state))
-            print(f"  {{{state}}} -- {char} --> {{{next_state}}}")
+        print("\nTransições:")
+        for state, transitions_from_state in transitions.items():
+            state = ",".join(map(str, state))
+            for char, next_state in transitions_from_state.items():
+                next_state = ",".join(map(str, next_state))
+                print(f"  {{{state}}} -- {char} --> {{{next_state}}}")
 
-    print(f"\nEstado Inicial: {{{','.join(map(str, start_state))}}}")
-    final_states = [f'{{{",".join(map(str, state))}}}' for state in final_states]
-    final_states = ",".join(final_states)
-    print("Estados Finais:", final_states)'''
+        print(f"\nEstado Inicial: {{{','.join(map(str, start_state))}}}")
+        final_states = [f'{{{",".join(map(str, state))}}}' for state in final_states]
+        final_states = ",".join(final_states)
+        print("Estados Finais:", final_states)
 
 RUN = True
 k = 1
