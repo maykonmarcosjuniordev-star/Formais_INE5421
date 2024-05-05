@@ -14,11 +14,17 @@ class Node:
         self.left = left
         self.right = right
         self.nullable = False
-        self.leaf = 0
+        self.leaf = None
         self.pai = None
+        self.firstpos = set()
+        self.lastpos = set()
+        self.followpos = set()
 
     def __str__(self):
         return f'{self.value}' # f'''({self.left} <-- {self.value} --> {self.right}) '''
+
+    def __eq__(self, other):
+        return str(self) == str(other)
 
 
 def fit_regex(regex):
@@ -40,12 +46,16 @@ def fit_regex(regex):
         fitted_regex.append(char)
         if not c1:
             leaf = Node(char)
-            if char == '&':
-                leaf.nullable = True
-            elif not c2:
-                alphabet.append(char)
             leaves.append(leaf)
             leaf.leaf = len(leaves)
+            leaf.firstpos.add(leaf.leaf)
+            leaf.lastpos.add(leaf.leaf)
+            if char == '&':
+                leaf.nullable = True
+                leaf.firstpos = set()
+                leaf.lastpos = set()
+            elif not c2:
+                alphabet.append(char)
             fitted_regex[-1] = leaf
         prev_char = char
     return alphabet, fitted_regex, leaves
@@ -81,9 +91,6 @@ def parse_regex(regex):
             nodes.append(Node(char))
         i += 1
     i = 1
-    print('\nregex =', "".join([str(n) for n in regex]))
-    prt = [n.value for n in nodes]
-    print('nodes originais =', prt)
     while i < len(nodes):
         node = nodes[i]
         if node.value == '.':
@@ -92,16 +99,12 @@ def parse_regex(regex):
             nodes[i-1] = node
             node.left.pai = node
             node.right.pai = node
+            node.nullable = node.left.nullable and node.right.nullable
             nodes.pop(i)
             nodes.pop(i)
         else:
             i += 1
-        prt = [n.value for n in nodes]
-        print('nodes =', prt)
     i = 1
-    print('------')
-    prt = [n.value for n in nodes]
-    print('nodes =', prt)
     while i < len(nodes):
         node = nodes[i]
         if node.value == '|':
@@ -110,159 +113,121 @@ def parse_regex(regex):
             nodes[i-1] = node
             node.left.pai = node
             node.right.pai = node
+            node.nullable = node.left.nullable or node.right.nullable
             nodes.pop(i)
             nodes.pop(i)
         else:
             i += 1
-        prt = [n.value for n in nodes]
-        print('nodes =', prt)
 
     return nodes[-1]
-
-# regex = "(&|b)(ab)*(&|a)"
-# regex = 'aa*(bb*aa*b)*'
-# regex = "a(a|b)*a"
-# regex = "a(a*(bb*a)*)*|b(b*(aa*b)*)*"
-# regex = "a(b|c(d*e))f"
-
-# _, regex, _ = fit_regex(regex)
-# out = parse_regex(regex)
-# print(out)
 
 def build_tree(regex, leaves):
     tree = parse_regex(regex)
     # Raiz é a concatenação da regex com '#'
-    root = Node('.')
-    root.right = Node('#')
-    root.right.pai = root
+    end = Node('#')
+    leaves.append(end)
+    end.leaf = len(leaves)
+    end.firstpos.add(end.leaf)
+    end.lastpos.add(end.leaf)
     # Constrói a sub-árvore para a regex original
+    root = Node('.')
+    end.pai = root
+    root.right = end
     root.left = tree
     tree.pai = root
     return root
 
-def compute_firstpos(node):
+def compute_firstpos(node:Node):
     if not node:
         return set()
     
+    compute_firstpos(node.left)
+    compute_firstpos(node.right)
+    
     if node.value == '*':
-        return compute_firstpos(node.left)
+        node.firstpos = node.left.firstpos.copy()
     
-    if node.value == '|':
-        return compute_firstpos(node.left) | compute_firstpos(node.right)
+    elif node.value == '|':
+        node.firstpos = node.left.firstpos.copy() | node.right.firstpos.copy()
     
-    if node.value == '.':
-        first_pos = compute_firstpos(node.left)
-        if node.left and node.left.nullable:
-            first_pos |= compute_firstpos(node.right)
-        return first_pos
+    elif node.value == '.':
+        node.firstpos = node.left.firstpos.copy()
+        if node.left.nullable:
+            node.firstpos |= node.right.firstpos.copy()
 
-    if node.value == '&':
-        return set()
-
-    return {node}
-
-def compute_lastpos(node):
+def compute_lastpos(node:Node):
     if not node:
         return set()
     
+    compute_lastpos(node.left)
+    compute_lastpos(node.right)
+
     if node.value == '*':
-        last_pos = compute_lastpos(node.left)
-        return last_pos
+        node.lastpos = node.left.lastpos.copy()
     
-    if node.value == '|':
-        return compute_lastpos(node.left) | compute_lastpos(node.right)
+    elif node.value == '|':
+        node.lastpos = node.left.lastpos.copy() | node.right.lastpos.copy()
     
-    if node.value == '.':
-        last_pos = compute_lastpos(node.right)
-        if node.right and node.right.nullable:
-            last_pos |= compute_lastpos(node.left)
+    elif node.value == '.':
+        node.lastpos = node.right.lastpos.copy()
+        if node.right.nullable:
+            node.lastpos |= node.left.lastpos.copy()
 
-    if node.value == '&':
-        return set()
-
-    return {node}
-
-def compute_followpos(node, firstpos, lastpos):
-    follow_pos = defaultdict(set)
-    
-    for node in firstpos:
-        follow_pos[node] |= compute_firstpos(node.right)
-    
-    for state in lastpos:
-        if node.value == '*':
-            follow_pos[state] |= compute_firstpos(node.left)
+def compute_followpos(node:Node):
+    if not node or not node.pai:
+        return
+    if node.pai.value == '.':
+        if node is node.pai.left:
+            node.followpos |= node.pai.right.firstpos.copy()
+            if node.pai.right.nullable:
+                compute_followpos(node.pai)
+                node.followpos |= node.pai.followpos.copy()
         else:
-            follow_pos[state] |= compute_lastpos(node.right)
-    
-    return follow_pos
-
-def compute_followpos(root, firstpos, lastpos):
-    follow_pos = defaultdict(set)
-
-    def visit(node):
-        if not node:
-            return
-        if node.leaf:  # Nó folha
-            if node.pai.value == '.':
-                right_sibling = node.pai.right
-                if right_sibling:
-                    follow_pos[node] |= compute_firstpos(right_sibling)
-
-            elif node.pai.value == '*':
-                follow_pos[node] |= compute_firstpos(node.pai.left)
-
-            elif node.pai.value == '|':
-                if node is node.pai.left:
-                    follow_pos[node] |= compute_firstpos(node.pai.right)
-                else:
-                    follow_pos[node] |= compute_firstpos(node.pai.left)
-
-            if node in lastpos:
-                if node.pai.pai:
-                    visit(node.pai)
-
-        else:  # Nó não-folha
-            visit(node.left)
-            visit(node.right)
-
-    visit(root)
-    return follow_pos
+            compute_followpos(node.pai)
+            node.followpos |= node.pai.followpos.copy()
+    elif node.pai.value == '*':
+        node.followpos |= node.firstpos.copy()
+        compute_followpos(node.pai)
+        node.followpos |= node.pai.followpos.copy()
+    elif node.pai.value == '|':
+        compute_followpos(node.pai)
+        node.followpos |= node.pai.followpos.copy()
 
 def build_dfa(regex):
     alphabet, new_regex, leaves = fit_regex(regex)
     tree = build_tree(new_regex, leaves)
-    first_pos = compute_firstpos(tree)
-    last_pos = compute_lastpos(tree)
-    follow_pos = compute_followpos(tree, first_pos, last_pos)
+    compute_firstpos(tree)
+    compute_lastpos(tree)
+    follow_pos = defaultdict(set)
+    for leaf in leaves:
+        compute_followpos(leaf)
+        follow_pos[leaf.leaf] = leaf.followpos
+    end = tree.left
 
-    states = set()
     transitions = defaultdict(dict)
-    
-    for state in first_pos:
-        states.add(state)
-    
-    for state in last_pos:
-        states.add(state)
+    states = tree.firstpos.copy() | tree.lastpos.copy()
     
     for state in states:
-        for char in follow_pos:
-            if char == state.value:
-                next_state = follow_pos[char]
-                transitions[state][char] = frozenset(next_state)
+        char = leaves[state-1].value
+        for leaf in leaves:
+            char2 = leaves[leaf.leaf-1].value
+            if char == char2:
+                next_state = leaf.followpos.copy()
+                transitions[state][char] = (next_state)
     
-    start_state = frozenset(first_pos)
-    final_states = frozenset(last_pos)# {frozenset(state) for state in last_pos if '&' in state}
+    start_state = tree.firstpos
+    final_states = tree.lastpos
     
     return states, transitions, start_state, final_states
 
 
 def main(regex):
+    # build_dfa(regex)
     states, transitions, start_state, final_states = build_dfa(regex)
 
     print("Estados:")
     for state in states:
-        st = state.value
-        print(" ", st)
+        print(" ", state)
 
     print("\nTransições:")
     for state, transitions_from_state in transitions.items():
@@ -278,7 +243,9 @@ while RUN:
     try:
         regex = input()
         print("\n---------------------------------------\nTeste", k)
+        print('Regex:', regex)
         main(regex)
         k += 1
+        RUN = False
     except EOFError:
         break

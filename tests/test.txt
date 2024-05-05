@@ -1,4 +1,6 @@
+(a|a(a|b)*a)|(b|b(a|b)*b)
 (&|b)(ab)*(&|a)
 aa*(bb*aa*b)*
 a(a|b)*a
 a(a*(bb*a)*)*|b(b*(aa*b)*)*
+(a|a(a|b)*a)|(b|b(a|b)*b)
