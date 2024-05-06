@@ -46,7 +46,7 @@ def fit_regex(regex):
         fitted_regex.append(char)
         if not c1:
             leaf = Node(char)
-            leaves.append((leaf, char))
+            leaves.append(leaf)
             leaf.leaf = len(leaves)
             leaf.firstpos.add(leaf.leaf)
             leaf.lastpos.add(leaf.leaf)
@@ -126,7 +126,7 @@ def build_tree(regex, leaves):
     tree = parse_regex(regex)
     # Raiz é a concatenação da regex com '#'
     end = Node('#')
-    leaves.append((end, '#'))
+    leaves.append(end)
     end.leaf = len(leaves)
     end.firstpos.add(end.leaf)
     end.lastpos.add(end.leaf)
@@ -213,28 +213,25 @@ def build_dfa(regex):
     tree = build_tree(new_regex, leaves)
     compute_firstpos(tree)
     compute_lastpos(tree)
-    follow_pos = defaultdict(set)
     leaves_by_sym = defaultdict(list)
-    for leaf, char in leaves:
+    for leaf in leaves:
         compute_followpos(leaf)
-        follow_pos[leaf.leaf] = leaf.followpos
-        leaves_by_sym[char].append(leaf.leaf)
+        leaves_by_sym[leaf.value].append(leaf)
 
     
     Dstates = []
     Dtran = defaultdict(dict)
     start_state = tuple(sorted(list(tree.firstpos)))
-    # s for s in Dstates if leaves[-1][0].leaf in s]
     final_states = set()
     Dstates.append(start_state)
     for state in Dstates:
-        if leaves[-1][0].leaf in state:
+        if leaves[-1].leaf in state:
             final_states.add(state)
         for char in alphabet:
             U = set()
             for p in leaves_by_sym[char]:
-                if p in state:
-                    U |= follow_pos[p]
+                if p.leaf in state:
+                    U |= p.followpos
             U = tuple(sorted(list(U)))
             if U:
                 if U not in Dstates:
@@ -270,6 +267,7 @@ def main(regex):
     states, transitions, start_state, final_states, alphabet = build_dfa(regex)
 
     print_output(transitions, start_state, final_states, alphabet)
+    
     if DEBUG:
         print("Estados:")
         for state in states:
