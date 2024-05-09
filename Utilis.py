@@ -12,6 +12,25 @@ DEBUG_F = False
 TESTE = 0
 from collections import defaultdict
 
+class Automaton:
+    def __init__(self, num_states:int, initial_state:str,
+                 final_states:set[str], alphabet:set[str],
+                 transitions:list[tuple[str]]):
+        self.num_states = num_states
+        self.initial_state = initial_state
+        self.final_states = final_states
+        self.alphabet = alphabet
+        self.transitions_tuple = transitions
+        self.transitions_dict = defaultdict(defaultdict(list))
+        for src, sym, dst in transitions:
+            self.transitions_dict[src][sym].append(dst)
+    
+    def __str__(self):
+        output = f"Automaton(Nstates = {self.num_states}, Alphabet = {self.alphabet}, Initial State = {self.initial_state}, Final States = {self.final_states}\nTransitions:\n"
+        for src, sym, dst in self.transitions_tuple:
+            output += f"{src} -> {dst} by {sym}\n"
+            
+
 def read_input(entry:str=None) -> tuple[int, str, set[str], set[str], list[tuple[str]]]:
     '''
     Lê a entrada no formato especificado.
@@ -22,15 +41,25 @@ def read_input(entry:str=None) -> tuple[int, str, set[str], set[str], list[tuple
         entry = (entry.strip()).split(";")
     num_states = int(entry[0])
     initial_state = entry[1]
-    final_states = set(entry[2].strip("{}").split(","))
     alphabet = set(entry[3].strip("{}").split(","))
-    transitions = [tuple(t.split(",")) for t in entry[4:]]
+    if initial_state[0] == "{":
+        final_states = set('{' + t + '}' for t in entry[2].strip("{}").split("},{"))
+        transitions = []
+        for t in entry[4:]:
+            src, rest = t.split("},")
+            sym, dst = rest.split(",{")
+            transitions.append((src + '}', sym, '{' + dst))
+    else:
+        final_states = set(entry[2].strip("{}").split(","))
+        transitions = [tuple(t.split(",")) for t in entry[4:]]
     if DEBUG_S:
         global TESTE
         TESTE += 1
         print("-------------\nTESTE", TESTE, "-  S")
         table = make_table(transitions, alphabet)
         print_table(table)
+    # automaton = Automaton(num_states, initial_state, final_states, alphabet, transitions)
+    # print(automaton)
     return num_states, initial_state, final_states, alphabet, transitions
 
 
@@ -41,13 +70,13 @@ def print_output(new_transitions: defaultdict, new_initial_state:str,
     '''
     # print(sorted(new_transitions.items()), end="\n\n")
     output_string = f"{len(new_transitions.keys())};"
-    output_string += "".join(sorted(new_initial_state)) + ";"
+    output_string += new_initial_state + ";"
     final_states_matrix = ["".join(j for j in i) for i in sorted(new_final_states)]
     output_string += "{" + ",".join(final_states_matrix) + "};"
     output_string += "{" + ",".join(sorted(alphabet)) + "}"
     for state, transitions in sorted(new_transitions.items()):
         for symbol, next_state in sorted(transitions.items()):
-            output_string += f";{state},{symbol},{next_state}"
+            output_string += f";\n{state} -- {symbol} --> {next_state}"
     print(output_string, end="\n\n")
     
     if DEBUG_F:

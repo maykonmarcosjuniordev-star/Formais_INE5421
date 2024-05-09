@@ -1,7 +1,7 @@
 all:
 	@echo "choose a target for make:"
 	@echo "-> determinize, minimize, conversion,"
-	@echo "-> determinize-test, minimize-test, conversion-test,m"
+	@echo "-> determinize-test, minimize-test, conversion-test,"
 	@echo "-> determinize-test-verbose, minimize-test-verbose, conversion-test-verbose"
 	@echo "-> determinize-and-minimize-test or determinize-and-minimize-test-verbose"
 

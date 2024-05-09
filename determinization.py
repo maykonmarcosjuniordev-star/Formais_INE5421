@@ -23,15 +23,15 @@ def print_output(new_transitions: defaultdict, new_initial_state:str,
     '''
     # print(sorted(new_transitions.items()), end="\n\n")
     output_string = f"{len(new_transitions.keys())};"
-    output_string += "{" + "".join(sorted(new_initial_state)) + "};"
-    final_states_matrix = ["".join(j for j in i) for i in sorted(new_final_states)]
+    output_string += "{" + ",".join(sorted(new_initial_state)) + "};"
+    final_states_matrix = [",".join(j for j in i) for i in sorted(new_final_states)]
     output_string += "{{" + "},{".join(final_states_matrix) + "}};"
     output_string += "{" + ",".join(sorted(alphabet)) + "}"
     for state, transitions in sorted(new_transitions.items()):
         for symbol, next_state in sorted(transitions.items()):
-            src = "{" + ''.join(state) +"}"
-            dst = "{" + ''.join(next_state) +"}"
-            output_string += f";{src},{symbol},{dst}"
+            src = "{" + ','.join(state) +"}"
+            dst = "{" + ','.join(next_state) +"}"
+            output_string += f";\n{src},{symbol},{dst};"
     print(output_string, end="\n\n")
 
 # Calcula o fecho épsilon transitivo de um conjunto de estados.

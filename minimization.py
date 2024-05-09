@@ -2,23 +2,6 @@ from collections import defaultdict
 from Utilis import read_input, print_output
 
 DEBUG = False
-"""
-P:= {{todos estados de aceitação}}, {todos estados de não-aceitação}};
-Q:= {{todos estados de aceitação}};
-while (Q é não-vazio) do
-     escolha e remova um conjunto A de Q
-     for each c in ∑ do
-          let X é o conjunto de estados para o qual uma transição sobre c leva a um estado em A
-          for each conjunto Y in P para o qual X ∩ Y é não-vazio do
-               substitua Y em P pelos dois conjuntos X ∩ Y e Y \ X
-               if Y está contido em Q
-                    substitua Y em Q pelos mesmos dois conjuntos
-               else
-                    adicione o menor dos dois conjuntos à Q
-          end;
-     end;
-end;
-"""
 
 def remove_dead_and_unreacheable_states(initial_state:str, final_states:set[str],
                                        alphabet:set[str], transitions:list[tuple[str]]):

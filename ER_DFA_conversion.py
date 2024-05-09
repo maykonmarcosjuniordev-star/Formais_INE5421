@@ -21,7 +21,7 @@ class Node:
         self.followpos = set()
 
     def __str__(self):
-        return f'{self.value}' # f'''({self.left} <-- {self.value} --> {self.right}) '''
+        return f'''({self.right} <-- {self.value} --> {self.left})''' # f'{self.value}'
 
     def __eq__(self, other):
         return str(self) == str(other)
@@ -209,8 +209,11 @@ Para cada estado não marcado S em D-States
 '''
 
 def build_dfa(regex):
+    print('regex =', regex)
     alphabet, new_regex, leaves = fit_regex(regex)
+    print('new_regex =', new_regex)
     tree = build_tree(new_regex, leaves)
+    print('tree =', tree)
     compute_firstpos(tree)
     compute_lastpos(tree)
     leaves_by_sym = defaultdict(list)
@@ -261,7 +264,7 @@ def print_output(new_transitions: defaultdict, new_initial_state:str,
             output_string += f";{src},{symbol},{dst}"
     print(output_string)
 
-DEBUG = False
+DEBUG = True
 def main(regex):
     # build_dfa(regex)
     states, transitions, start_state, final_states, alphabet = build_dfa(regex)
