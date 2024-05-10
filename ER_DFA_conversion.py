@@ -211,9 +211,7 @@ Para cada estado não marcado S em D-States
 def build_dfa(regex):
     print('regex =', regex)
     alphabet, new_regex, leaves = fit_regex(regex)
-    print('new_regex =', new_regex)
     tree = build_tree(new_regex, leaves)
-    print('tree =', tree)
     compute_firstpos(tree)
     compute_lastpos(tree)
     leaves_by_sym = defaultdict(list)
@@ -243,13 +241,13 @@ def build_dfa(regex):
     
     return Dstates, Dtran, start_state, final_states, alphabet
 
-def print_output(new_transitions: defaultdict, new_initial_state:str,
+def print_output(states:set, new_transitions: defaultdict, new_initial_state:str,
                  new_final_states:set, alphabet:set) -> None:
     '''
     Imprime o AFD resultante.
     '''
     # print(sorted(new_transitions.items()), end="\n\n")
-    output_string = f"{len(new_transitions.keys())};"
+    output_string = f"{len(states)};"
     start_state = '{' + ",".join(map(str, new_initial_state)) + '};'
     output_string += start_state
     final_states = set(['{' + ",".join(map(str, state)) + '}' for state in new_final_states])
@@ -269,7 +267,7 @@ def main(regex):
     # build_dfa(regex)
     states, transitions, start_state, final_states, alphabet = build_dfa(regex)
 
-    print_output(transitions, start_state, final_states, alphabet)
+    print_output(states, transitions, start_state, final_states, alphabet)
     
     if DEBUG:
         print("Estados:")

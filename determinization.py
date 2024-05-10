@@ -31,7 +31,7 @@ def print_output(new_transitions: defaultdict, new_initial_state:str,
         for symbol, next_state in sorted(transitions.items()):
             src = "{" + ','.join(state) +"}"
             dst = "{" + ','.join(next_state) +"}"
-            output_string += f";\n{src},{symbol},{dst};"
+            output_string += f";\n{src},{symbol},{dst}"
     print(output_string, end="\n\n")
 
 # Calcula o fecho épsilon transitivo de um conjunto de estados.
