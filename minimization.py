@@ -1,3 +1,9 @@
+"""
+formato de entrada:
+    num_states;initial_state;{final_states};{alphabet};src,sym,dst;...
+    EX:
+    3;0;{1};{a,b};0,a,1;0,b,2;1,a,1;1,b,2;2,a,1;2,b,2
+"""
 from collections import defaultdict
 from Utilis import read_input, print_output
 

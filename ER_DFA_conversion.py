@@ -8,6 +8,8 @@ Padrão da entrada: Expressão Regular contendo símbolos do alfabeto e os opera
 
 from collections import defaultdict
 
+DEBUG = False
+
 class Node:
     def __init__(self, value, left=None, right=None):
         self.value = value
@@ -21,7 +23,8 @@ class Node:
         self.followpos = set()
 
     def __str__(self):
-        return f'''({self.right} <-- {self.value} --> {self.left})''' # f'{self.value}'
+        # return f'''({self.right} <-- {self.value} --> {self.left})'''
+        return f'{self.value}'
 
     def __eq__(self, other):
         return str(self) == str(other)
@@ -37,6 +40,7 @@ def fit_regex(regex):
     leaves = []
 
     for char in regex:
+        char = f'{char}'
         c1 = char in operators
         c2 = char in alphabet
         c3 = char in non_concat_l
@@ -59,6 +63,14 @@ def fit_regex(regex):
                 alphabet.append(char)
             fitted_regex[-1] = leaf
         prev_char = char
+        if DEBUG:
+            print(f'char: {char}, prev_char: {prev_char}')
+            print(f'c1: {c1}, char: {char} in {operators}')
+            print(f'c2: {c2}, char: {char} in {alphabet}')
+            print(f'c3: {c3}, char: {char} in {non_concat_l}')
+            print(f'c4: {c4}, prev_char: {prev_char} in {non_concat_r}')
+            prt = [str(node) for node in fitted_regex]
+            print(f'fitted_regex: {prt}\n')
     return alphabet, fitted_regex, leaves
 
 
@@ -93,6 +105,10 @@ def parse_regex(regex):
         i += 1
     i = 1
     while i + 1 < len(nodes):
+        if DEBUG:
+            print("Concatenando")
+            prrt = [str(node) for node in nodes]
+            print(prrt)
         node = nodes[i]
         if node.value == '.':
             node.left = nodes[i-1]
@@ -105,8 +121,15 @@ def parse_regex(regex):
             nodes.pop(i)
         else:
             i += 1
+        if DEBUG:
+            prrt = [str(node) for node in nodes]
+            print(prrt)
     i = 1
     while i + 1 < len(nodes):
+        if DEBUG:
+            print("unindo")
+            prrt = [str(node) for node in nodes]
+            print(prrt)
         node = nodes[i]
         if node.value == '|':
             node.left = nodes[i-1]
@@ -119,7 +142,9 @@ def parse_regex(regex):
             nodes.pop(i)
         else:
             i += 1
-
+        if DEBUG:
+            prrt = [str(node) for node in nodes]
+            print(prrt)
     return nodes[-1]
 
 def build_tree(regex, leaves):
@@ -209,7 +234,6 @@ Para cada estado não marcado S em D-States
 '''
 
 def build_dfa(regex):
-    print('regex =', regex)
     alphabet, new_regex, leaves = fit_regex(regex)
     tree = build_tree(new_regex, leaves)
     compute_firstpos(tree)
@@ -262,14 +286,14 @@ def print_output(states:set, new_transitions: defaultdict, new_initial_state:str
             output_string += f";{src},{symbol},{dst}"
     print(output_string)
 
-DEBUG = True
+DEBUG2 = True
 def main(regex):
     # build_dfa(regex)
     states, transitions, start_state, final_states, alphabet = build_dfa(regex)
 
     print_output(states, transitions, start_state, final_states, alphabet)
     
-    if DEBUG:
+    if DEBUG2:
         print("Estados:")
         for state in states:
             state = ",".join(map(str, state))

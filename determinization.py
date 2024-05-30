@@ -1,3 +1,10 @@
+"""
+formato de entrada:
+    num_states;initial_state;{final_states};{alphabet};src,sym,dst;...
+    EX:
+    3;0;{1};{a,b};0,a,1;0,b,2;1,a,1;1,b,2;2,a,1;2,b,2
+"""
+
 from collections import defaultdict
 
 def read_input(entry:str=None) -> tuple[set[str], str, set[str], set[str], list[tuple[str]]]:
@@ -31,7 +38,7 @@ def print_output(new_transitions: defaultdict, new_initial_state:str,
         for symbol, next_state in sorted(transitions.items()):
             src = "{" + ','.join(state) +"}"
             dst = "{" + ','.join(next_state) +"}"
-            output_string += f";\n{src},{symbol},{dst}"
+            output_string += f";{src},{symbol},{dst}"
     print(output_string, end="\n\n")
 
 # Calcula o fecho épsilon transitivo de um conjunto de estados.
@@ -55,7 +62,10 @@ def determinize():
     new_final_states = set()
     if is_epsilon:
         initial_state = closure({initial_state}, transitions)
-    states_queue = [set(initial_state)]
+    state_set = set()
+    # state_set.add(initial_state)
+    states_queue = [initial_state]
+
 
     while states_queue:
         state = states_queue.pop(0)
