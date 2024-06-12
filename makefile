@@ -3,10 +3,7 @@ all:
 	@echo "-> determinize, minimize, conversion,"
 	@echo "-> determinize-test, minimize-test, conversion-test,"
 	@echo "-> determinize-test-verbose, minimize-test-verbose, conversion-test-verbose"
-	@echo "-> determinize-and-minimize-test or determinize-and-minimize-test-verbose"
-
-clean:
-	
+	@echo "-> "first_follow, first_follow-test or first_follow-test-verbose"	
 
 determinize:
 	@python3 determinization.py
@@ -28,13 +25,6 @@ determinize-test-verbose:
 minimize-test-verbose:
 	@python3 minimization.py < tests/test.txt
 
-determinize-and-minimize-test:
-	@((python3 determinization.py) < tests/test.txt | python3 minimization.py) > tests/test_results.txt
-	@cat tests/test_results.txt | diff tests/test_answers.txt -
-
-determinize-and-minimize-test-verbose:
-	@python3 determinization.py < tests/test.txt | python3 minimization.py
-
 conversion:
 	@python3 ER_DFA_conversion.py
 
@@ -44,3 +34,13 @@ conversion-test:
 
 conversion-test-verbose:
 	@python3 ER_DFA_conversion.py < tests/test.txt
+
+first_follow:
+	@python3 first_follow.py
+
+first_follow-test:
+	@python3 first_follow.py < tests/test.txt > tests/test_results.txt
+	@cat tests/test_results.txt | diff tests/test_answers.txt -
+
+first_follow-test-verbose:
+	@python3 first_follow.py < tests/test.txt
