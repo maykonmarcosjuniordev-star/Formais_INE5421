@@ -7,7 +7,7 @@ Cada letra minúscula é um terminal, então letras minúscula em sequência sã
 from collections import defaultdict
 
 DEBUG_FIRST = False
-DEBUG_FOLLOW = True
+DEBUG_FOLLOW = False
 
 def get_grammar(input_:str):
     entrada = input_.strip().split(";")[:-1]
@@ -21,23 +21,18 @@ def get_grammar(input_:str):
     return grammar, T_entry_order
 
 
-def print_firsts_and_follows(firsts:dict[str, set[str]],
-                             entry_order:list[str],
-                             follows:dict[str, set[str]]=None) -> None:
-    if not DEBUG_FOLLOW:
-        out_firsts = defaultdict(list)
-        for left in entry_order:
-            out_firsts[left] = sorted(firsts[left])
-            if "&" in out_firsts[left]:
-                out_firsts[left].remove("&")
-                out_firsts[left].append("&")
-        for left in entry_order:
-            string = "{" + ", ".join(out_firsts[left]) + "};"
-            print(f"First({left}) = {string}", end=" ")
-        if not follows:
-            print()
-            return
-        print()
+def print_firsts_and_follows(firsts:dict,
+                             entry_order:list,
+                             follows:dict) -> None:
+    out_firsts = defaultdict(list)
+    for left in entry_order:
+        out_firsts[left] = sorted(firsts[left])
+        if "&" in out_firsts[left]:
+            out_firsts[left].remove("&")
+            out_firsts[left].append("&")
+    for left in entry_order:
+        string = "{" + ", ".join(out_firsts[left]) + "};"
+        print(f" First({left}) = {string}", end="")
     out_follows = defaultdict(list)
     for left in entry_order:
         out_follows[left] = sorted(follows[left])
@@ -46,11 +41,11 @@ def print_firsts_and_follows(firsts:dict[str, set[str]],
             out_follows[left].append("$")
     for left in entry_order:
         string = "{" + ", ".join(out_follows[left]) + "};"
-        print(f"Follow({left}) = {string}", end=" ")
+        print(f" Follow({left}) = {string}", end="")
     print()
 
 
-def recur_first(grammar:dict[str, list[str]], left:str, firsts:dict[str, set[str]]) -> set[str]:
+def recur_first(grammar:dict, left:str, firsts:dict) -> set:
     for prod in grammar[left]:
         if DEBUG_FIRST:
             print("---\ndefinindo", left, prod, "para o firsts:")
@@ -83,7 +78,7 @@ def recur_first(grammar:dict[str, list[str]], left:str, firsts:dict[str, set[str
     return firsts[left]
 
 
-def first(grammar:dict[str, list[str]]) -> dict[str, list[str]]:
+def first(grammar:dict) -> dict:
     firsts = defaultdict(set)
     for left, right in grammar.items():
         if firsts[left]:
@@ -96,31 +91,32 @@ def first(grammar:dict[str, list[str]]) -> dict[str, list[str]]:
     return firsts
 
 
-def recur_follow(must_update:dict[str, set[str]],
-                 sym:str, follows:dict[str]) -> set[str]:
+def recur_follow(must_update:dict,
+                 sym:str, follows:dict) -> set:
     if not must_update[sym]:
         return
     if DEBUG_FOLLOW:
         print(f"->->->-> Updating {must_update[sym]} with FOLLOW[{sym}] =",
               follows[sym])
-    for d in must_update[sym]:
+    dependencys = [i for i in must_update[sym] if i != sym]
+    for d in dependencys:
         if DEBUG_FOLLOW:
-            print(f"->->->->-> Updating {d} with FOLLOW[{sym}] =", follows[sym])
+            print(f"->->->->-> Updating {d} with ", follows[sym] - follows[d])
         follows[d] = follows[d].union(follows[sym])
         recur_follow(must_update, d, follows)
 
 
 
-def follow(grammar:dict[str, list[str]],
-           firsts:dict[str, set[str]],
-           entry_order:list[str]) -> dict[str, set[str]]:
+def follow(grammar:dict,
+           firsts:dict,
+           entry_order:list) -> dict:
     follows = defaultdict(set)
     must_update = defaultdict(set)
     follows[entry_order[0]].add("$")
     for left in entry_order:
         for prod in grammar[left]:
             for i, sym in enumerate(prod):
-                if sym == left or sym.islower() or sym == "&":
+                if sym.islower() or sym == "&":
                     continue
                 if DEBUG_FOLLOW:
                     print("-------------\n-------------\nSearching for", sym, "in",
@@ -128,6 +124,8 @@ def follow(grammar:dict[str, list[str]],
                 if i == len(prod) - 1:
                     if DEBUG_FOLLOW:
                         print("-> Last symbol,", f"adding FOLLOW[{left}] =", follows[left], "to", sym)
+                    if left == sym:
+                        continue
                     follows[sym] = follows[sym].union(follows[left])
                     must_update[left].add(sym)
                     recur_follow(must_update, sym, follows)
@@ -148,7 +146,6 @@ def follow(grammar:dict[str, list[str]],
                         if DEBUG_FOLLOW:
                             print(f"->->-> adding FIRST[{n_sym}] =", firsts[n_sym], "to", sym)
                         follows[sym] = follows[sym].union(firsts[n_sym])
-                        must_update[n_sym].add(sym)
                     if "&" in follows[sym]:
                         if DEBUG_FOLLOW:
                             print(f"-> Symbols after {sym} in {prod} are nullable,",
@@ -169,7 +166,7 @@ if __name__ == '__main__':
             firsts = first(grammar)
             follows = follow(grammar, firsts, entry_order)
             print_firsts_and_follows(firsts, entry_order, follows)
-            running = False
+            # running = False
         except EOFError:
             break
 
