@@ -7,7 +7,7 @@ Cada letra minúscula é um terminal, então letras minúscula em sequência sã
 from collections import defaultdict
 
 DEBUG_FIRST = False
-DEBUG_FOLLOW = False
+DEBUG_FOLLOW = True
 
 def get_grammar(input_:str):
     entrada = input_.strip().split(";")[:-1]
@@ -24,26 +24,24 @@ def get_grammar(input_:str):
 def print_firsts_and_follows(firsts:dict[str, set[str]],
                              entry_order:list[str],
                              follows:dict[str, set[str]]=None) -> None:
-    '''out_firsts = defaultdict(list)
-    for left in entry_order:
-        out_firsts[left] = sorted(firsts[left])
-        if "&" in out_firsts[left]:
-            out_firsts[left].remove("&")
-            out_firsts[left].append("&")
-    for left in entry_order:
-        string = "{" + ", ".join(out_firsts[left]) + "};"
-        print(f"First({left}) = {string}", end=" ")
-    if not follows:
+    if not DEBUG_FOLLOW:
+        out_firsts = defaultdict(list)
+        for left in entry_order:
+            out_firsts[left] = sorted(firsts[left])
+            if "&" in out_firsts[left]:
+                out_firsts[left].remove("&")
+                out_firsts[left].append("&")
+        for left in entry_order:
+            string = "{" + ", ".join(out_firsts[left]) + "};"
+            print(f"First({left}) = {string}", end=" ")
+        if not follows:
+            print()
+            return
         print()
-        return
-    print()'''
     out_follows = defaultdict(list)
     for left in entry_order:
         out_follows[left] = sorted(follows[left])
-        if "&" in out_follows[left]:
-            out_follows[left].remove("&")
-            out_follows[left].append("&")
-        if "$" in out_follows[left]:
+        if "$" in out_follows[left] and left != entry_order[0]:
             out_follows[left].remove("$")
             out_follows[left].append("$")
     for left in entry_order:
@@ -84,6 +82,7 @@ def recur_first(grammar:dict[str, list[str]], left:str, firsts:dict[str, set[str
             print("->", firsts)
     return firsts[left]
 
+
 def first(grammar:dict[str, list[str]]) -> dict[str, list[str]]:
     firsts = defaultdict(set)
     for left, right in grammar.items():
@@ -97,49 +96,68 @@ def first(grammar:dict[str, list[str]]) -> dict[str, list[str]]:
     return firsts
 
 
+def recur_follow(must_update:dict[str, set[str]],
+                 sym:str, follows:dict[str]) -> set[str]:
+    if not must_update[sym]:
+        return
+    if DEBUG_FOLLOW:
+        print(f"->->->-> Updating {must_update[sym]} with FOLLOW[{sym}] =",
+              follows[sym])
+    for d in must_update[sym]:
+        if DEBUG_FOLLOW:
+            print(f"->->->->-> Updating {d} with FOLLOW[{sym}] =", follows[sym])
+        follows[d] = follows[d].union(follows[sym])
+        recur_follow(must_update, d, follows)
+
+
+
 def follow(grammar:dict[str, list[str]],
            firsts:dict[str, set[str]],
            entry_order:list[str]) -> dict[str, set[str]]:
     follows = defaultdict(set)
+    must_update = defaultdict(set)
     follows[entry_order[0]].add("$")
     for left in entry_order:
         for prod in grammar[left]:
             for i, sym in enumerate(prod):
+                if sym == left or sym.islower() or sym == "&":
+                    continue
                 if DEBUG_FOLLOW:
                     print("-------------\n-------------\nSearching for", sym, "in",
-                          prod, "from", left)
-                if sym.islower() or sym == "&":
-                    continue
+                        prod, "from", left)
                 if i == len(prod) - 1:
                     if DEBUG_FOLLOW:
-                        print("Last symbol,", f"adding FOLLOW[{left}] =", follows[left], "to", sym)
+                        print("-> Last symbol,", f"adding FOLLOW[{left}] =", follows[left], "to", sym)
                     follows[sym] = follows[sym].union(follows[left])
+                    must_update[left].add(sym)
+                    recur_follow(must_update, sym, follows)
                 else:
                     if DEBUG_FOLLOW:
-                        print("----\nVerifying symbols after", sym, "in", prod, end="\n\n")
+                        print("-> Verifying symbols after", sym, "in", prod)
                     for j in range(i + 1, len(prod)):
                         n_sym = prod[j]
                         if DEBUG_FOLLOW:
-                            print("Checking", n_sym)
+                            print("->-> Checking", n_sym)
                         if n_sym.islower():
                             if DEBUG_FOLLOW:
-                                print("Is a terminal, adding", n_sym, "to", sym)
+                                print("->->-> Is a terminal, adding", n_sym, "to", sym)
                             follows[sym].add(n_sym)
                             follows[sym].discard("&")
+                            recur_follow(must_update, sym, follows)
                             break
                         if DEBUG_FOLLOW:
-                            print(f"adding FIRST[{n_sym}] =", firsts[n_sym], "to", sym)
+                            print(f"->->-> adding FIRST[{n_sym}] =", firsts[n_sym], "to", sym)
                         follows[sym] = follows[sym].union(firsts[n_sym])
-                        if "&" not in firsts[n_sym]:
-                            follows[sym].discard("&")
-                            break
+                        must_update[n_sym].add(sym)
                     if "&" in follows[sym]:
                         if DEBUG_FOLLOW:
-                            print(f"->Symbols after {sym} in {prod} are nullable,",
-                                  f"\n->adding FOLLOW[{left}] =", follows[left], "to", sym)
+                            print(f"-> Symbols after {sym} in {prod} are nullable,",
+                                f"\n-> adding FOLLOW[{left}] =", follows[left], "to", sym)
                         follows[sym] = follows[sym].union(follows[left])
+                        must_update[left].add(sym)
                 if DEBUG_FOLLOW:
-                    print("-------------\n-------------\nFOLLOWS became\n--->", follows)
+                    print("-------------\nFOLLOWS became\n->", [[k, f] for k, f in follows.items()])
+    [o.discard("&") for o in follows.values()]
     return follows
 
 
