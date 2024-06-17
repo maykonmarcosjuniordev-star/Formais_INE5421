@@ -24,6 +24,8 @@ def get_grammar(input_:str):
 def print_firsts_and_follows(firsts:dict,
                              entry_order:list,
                              follows:dict) -> None:
+    if DEBUG_FOLLOW or DEBUG_FIRST:
+        print("\n")
     out_firsts = defaultdict(list)
     for left in entry_order:
         out_firsts[left] = sorted(firsts[left])
@@ -33,6 +35,8 @@ def print_firsts_and_follows(firsts:dict,
     for left in entry_order:
         string = "{" + ", ".join(out_firsts[left]) + "};"
         print(f" First({left}) = {string}", end="")
+    if DEBUG_FOLLOW:
+        print("\n")
     out_follows = defaultdict(list)
     for left in entry_order:
         out_follows[left] = sorted(follows[left])
@@ -50,7 +54,7 @@ def recur_first(grammar:dict, left:str, firsts:dict) -> set:
         if DEBUG_FIRST:
             print("---\ndefinindo", left, prod, "para o firsts:")
             print("->", firsts)
-        if prod == "&" or prod[0].islower():
+        if prod[0] == "&" or prod[0].islower():
             if DEBUG_FIRST:
                 print("--> adicionado", prod[0])
             firsts[left].add(prod[0])
@@ -58,8 +62,12 @@ def recur_first(grammar:dict, left:str, firsts:dict) -> set:
             if DEBUG_FIRST:
                 print("Recursão necessária")
             prod_first = set()
-            for sym in prod:
-                if not sym.islower():
+            for i, sym in enumerate(prod):
+                if sym == left:
+                    if DEBUG_FIRST:
+                        print("-> skipping", sym)
+                    continue
+                elif not sym.islower():
                     sym_first = recur_first(grammar, sym, firsts)
                     prod_first = prod_first.union(sym_first)
                     if not ("&" in sym_first):
@@ -129,6 +137,10 @@ def follow(grammar:dict,
                     follows[sym] = follows[sym].union(follows[left])
                     must_update[left].add(sym)
                     recur_follow(must_update, sym, follows)
+                elif (i == 0) and (sym == left):
+                    if DEBUG_FOLLOW:
+                        print("-> Left recursive, skipping")
+                    continue
                 else:
                     if DEBUG_FOLLOW:
                         print("-> Verifying symbols after", sym, "in", prod)
@@ -163,9 +175,19 @@ if __name__ == '__main__':
     while running:
         try:
             grammar, entry_order = get_grammar(input())
+            ILR = any(any(b[0] == h for b in prods) for h, prods in grammar.items())
+            print("gramática recursiva à esquerda\n" if ILR else "", end="")
+            factors = dict(defaultdict(list))
+            for h, prods in grammar.items():
+                factors[h] = defaultdict(list)
+                for p in prods:
+                    factors[h][p[0]].append(p)
+            INF = any(any(len(p) > 1 for p in prods.values()) for prods in factors.values())
+            print("gramática não fatorada\n" if INF else "", end="")
             firsts = first(grammar)
             follows = follow(grammar, firsts, entry_order)
             print_firsts_and_follows(firsts, entry_order, follows)
+
             # running = False
         except EOFError:
             break

@@ -3,7 +3,7 @@ all:
 	@echo "-> determinize, minimize, conversion,"
 	@echo "-> determinize-test, minimize-test, conversion-test,"
 	@echo "-> determinize-test-verbose, minimize-test-verbose, conversion-test-verbose"
-	@echo "-> "first_follow, first_follow-test or first_follow-test-verbose"	
+	@echo "-> first_follow, first_follow-test or first_follow-test-verbose"	
 
 determinize:
 	@python3 determinization.py
