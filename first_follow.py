@@ -86,7 +86,7 @@ def recur_first(grammar:dict, left:str, firsts:dict) -> set:
     return firsts[left]
 
 
-def first(grammar:dict) -> dict:
+def first(grammar:dict) -> defaultdict:
     firsts = defaultdict(set)
     for left, right in grammar.items():
         if firsts[left]:
@@ -117,7 +117,7 @@ def recur_follow(must_update:dict,
 
 def follow(grammar:dict,
            firsts:dict,
-           entry_order:list) -> dict:
+           entry_order:list) -> defaultdict:
     follows = defaultdict(set)
     must_update = defaultdict(set)
     follows[entry_order[0]].add("$")
