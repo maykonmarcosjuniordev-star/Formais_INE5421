@@ -49,7 +49,8 @@ def print_firsts_and_follows(firsts:dict,
     print()
 
 
-def recur_first(grammar:dict, left:str, firsts:dict) -> set:
+def recur_first(grammar:dict, left:str, firsts:dict, rec_fathers:list=[]) -> set:
+    rec_fathers.append(left)
     for prod in grammar[left]:
         if DEBUG_FIRST:
             print("---\ndefinindo", left, prod, "para o firsts:")
@@ -63,12 +64,12 @@ def recur_first(grammar:dict, left:str, firsts:dict) -> set:
                 print("Recursão necessária")
             prod_first = set()
             for i, sym in enumerate(prod):
-                if sym == left:
+                if sym in rec_fathers:
                     if DEBUG_FIRST:
                         print("-> skipping", sym)
                     continue
                 elif not sym.islower():
-                    sym_first = recur_first(grammar, sym, firsts)
+                    sym_first = recur_first(grammar, sym, firsts, rec_fathers)
                     prod_first = prod_first.union(sym_first)
                     if not ("&" in sym_first):
                         prod_first.discard("&")
@@ -78,7 +79,7 @@ def recur_first(grammar:dict, left:str, firsts:dict) -> set:
                     prod_first.discard("&")
                     break
             if DEBUG_FIRST:
-                print("-->Recursão retornou", prod_first)
+                print("--> Recursão retornou", prod_first)
             firsts[left] = firsts[left].union(prod_first)
         if DEBUG_FIRST:
             print("definido", left, prod, "ficou:")
@@ -98,7 +99,6 @@ def first(grammar:dict) -> defaultdict:
         firsts[left] = recur_first(grammar, left, firsts)
     return firsts
 
-
 def recur_follow(must_update:dict,
                  sym:str, follows:dict) -> set:
     if not must_update[sym]:
@@ -112,8 +112,6 @@ def recur_follow(must_update:dict,
             print(f"->->->->-> Updating {d} with ", follows[sym] - follows[d])
         follows[d] = follows[d].union(follows[sym])
         recur_follow(must_update, d, follows)
-
-
 
 def follow(grammar:dict,
            firsts:dict,
@@ -168,7 +166,6 @@ def follow(grammar:dict,
                     print("-------------\nFOLLOWS became\n->", [[k, f] for k, f in follows.items()])
     [o.discard("&") for o in follows.values()]
     return follows
-
 
 if __name__ == '__main__':
     running = True

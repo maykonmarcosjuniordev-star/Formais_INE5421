@@ -2,8 +2,9 @@ from collections import defaultdict
 from first_follow import first, follow, get_grammar
 
 DEBUG_LR = False
+DEBUG_NF = False
 
-def left_recursion(grammar, h, prods):
+def left_recursion(grammar:dict, rec_fathers:list, prods:list) -> tuple:
     if DEBUG_LR:
         print('verificando recursão à esquerda para', h, "nas produções", prods)
     has_epsilon = any([p == "&" for p in prods])
@@ -21,12 +22,13 @@ def left_recursion(grammar, h, prods):
                 if DEBUG_LR:
                     print(f'-> {sym} é T, ignorando a produção', p)                
                 break
-            if sym == h:
+            if sym in rec_fathers:
                 print('->-> recursão à esquerda encontrada')
                 return True, has_epsilon
             if DEBUG_LR:
                 print(f'->-> {sym} é NT, recursão necessária')
-            lr = left_recursion(grammar, h, grammar[sym])
+            rec_fathers.append(sym)
+            lr = left_recursion(grammar, rec_fathers, grammar[sym])
             if lr[0]:
                 return True, has_epsilon
             if not lr[1]:
@@ -42,49 +44,79 @@ def left_recursion(grammar, h, prods):
 
 def is_left_recursive(grammar:dict) -> bool:
     for h, prods in grammar.items():
-        if left_recursion(grammar, h, prods)[0]:
+        if left_recursion(grammar, [h], prods)[0]:
             print("gramática recursiva à esquerda")
             return True
         if DEBUG_LR:
             print(f'----------------\nrecursão à esquerda não encontrada para {h}\n----------------')
     return False
 
-def is_not_factored(grammar:dict, firsts:defaultdict,
-                    follows:defaultdict) -> bool:
-    for h, prods in grammar.items():
-        if len(prods) == 1:
-            continue
-        f_prods = dict()
-        for i, p in enumerate(prods):
-            sym = p[0]
-            if sym.islower():
-                f_prods[i] = set([sym])
-                continue
-            if sym == "&":
-                f_prods[i] = follows[h]
-                continue
-            f_i = firsts[sym]
-            if "&" in f_i:
-                for s in p:
-                    if s == sym:
-                        continue
-                    f_s = firsts[s]
-                    f_i = f_i.union(f_s)
-                    if "&" not in f_s:
-                        break
-                f_i = f_i.union(follows[h])
-            f_prods[i] = f_i
-        for i, p1 in f_prods.items():
-            for j, p2 in f_prods.items():
-                if i == j:
-                    continue
-                if p1.intersection(p2):
-                    print("gramática não fatorada")
-                    return True            
+
+def is_not_factored(grammar: dict, firsts: dict,
+                    follows: dict) -> bool:
+    for left, prods in grammar.items():
+        prefixes = defaultdict(set)
+        if DEBUG_NF:
+            print(f"Verificando fatoração para {left} nas produções {prods}")
+        for prod in prods:
+            if DEBUG_NF:
+                print(f"-> Verificando {prod}")
+            first_set = set()
+            for sym in prod:
+                if sym.islower() or sym == "&":
+                    if DEBUG_NF:
+                        print(f"->-> {sym} é terminal, adicionando ao first_set")
+                    first_set.add(sym)
+                    break
+                if DEBUG_NF:
+                    print(f"->-> {sym} é não-terminal, adicionando first[{sym}] = {firsts[sym]}")
+                first_set |= firsts[sym]
+                if "&" not in firsts[sym]:
+                    if DEBUG_NF:
+                        print(f"->-> {sym} não é anulável, parando")
+                    first_set -= {"&"}
+                    break
+            if "&" in first_set:
+                if DEBUG_NF:
+                    print(f"->-> {prod} é anulável, adicionando follow[{left}] = {follows[left] - {'$'}}")
+                first_set -= {"&"}
+                first_set |= follows[left] - {"$"}
+            if DEBUG_NF:
+                print(f"->->-> first_set = {first_set}")
+            for symbol in first_set:
+                prefixes[symbol].add(prod)
+
+        # Check for common prefixes
+        if DEBUG_NF:
+            print(f"->Factors of {left} = {dict(prefixes)}")
+        if any(len(p) > 1 for p in prefixes.values()):
+            print("gramática não fatorada")
+            return True
+    if DEBUG_NF:
+        print("_______________ gramática fatorada _______________")
     return False
 
+
 def print_ll1(ll1):
-    pass
+    terminals = sorted({symbol for key in ll1 for symbol in ll1[key]})
+    non_terminals = sorted(ll1.keys())
+    
+    # Print header
+    print("  | ", end="")
+    for terminal in terminals:
+        print(f"{terminal:4}", end=" ")
+    print()
+    print("-" * (5 + 5 * len(terminals)))
+    
+    # Print table content
+    for non_terminal in non_terminals:
+        print(f"{non_terminal} | ", end="")
+        for terminal in terminals:
+            if terminal in ll1[non_terminal]:
+                print(f"{ll1[non_terminal][terminal]:4}", end=" ")
+            else:
+                print("    ", end=" ")
+        print()
 
 """
 Teste 1
@@ -102,8 +134,27 @@ Teste 3
 
 """
 
-def ll1(grammar:dict, firsts:dict, follows:dict) -> bool:
-    pass
+def ll1(grammar:dict, firsts:dict, follows:dict) -> dict:
+    ll1_table = defaultdict(dict)    
+    for left, prods in grammar.items():
+        for prod in prods:
+            first_set = set()
+            for sym in prod:
+                if sym.islower() or sym == "&":
+                    first_set.add(sym)
+                    break
+                first_set |= firsts[sym]
+                if "&" not in firsts[sym]:
+                    break
+            if "&" in first_set:
+                first_set -= {"&"}
+                first_set |= follows[left] - {"$"}
+            for terminal in first_set:
+                if terminal in ll1_table[left]:
+                    print(f"Conflito encontrado em {left} -> {prod}")
+                    return None  # Grammar is not LL(1)
+                ll1_table[left][terminal] = prod
+    return ll1_table
 
 def main():
     grammar, entry_order = get_grammar(input())
@@ -118,8 +169,9 @@ if __name__ == '__main__':
     while True:
         try:
             main()
-            print("\n-------------------\n-------------------\n-------------------\n")
             # break
+            if DEBUG_LR or DEBUG_NF:
+                print("\n-----------------------------\n-----------------------------\n")
         except EOFError:
             break
 
