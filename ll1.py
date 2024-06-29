@@ -3,10 +3,13 @@ from first_follow import first, follow, get_grammar
 
 DEBUG_LR = False
 DEBUG_NF = False
+DEBUG_LL1 = False
 
 def left_recursion(grammar:dict, rec_fathers:list, prods:list) -> tuple:
     if DEBUG_LR:
-        print('verificando recursão à esquerda para', h, "nas produções", prods)
+        print('verificando recursão à esquerda para',
+              rec_fathers[-1], "partindo de",
+              rec_fathers[0], "nas produções", prods)
     has_epsilon = any([p == "&" for p in prods])
     for p in prods:
         if p == "&":
@@ -97,27 +100,24 @@ def is_not_factored(grammar: dict, firsts: dict,
     return False
 
 
-def print_ll1(ll1):
-    terminals = sorted({symbol for key in ll1 for symbol in ll1[key]})
+def print_ll1(ll1, entry_order):
     non_terminals = sorted(ll1.keys())
+    terminals = sorted({symbol for key in ll1 for symbol in ll1[key]})
+    terminals.remove("$")
+    terminals.append("$")
     
-    # Print header
-    print("  | ", end="")
-    for terminal in terminals:
-        print(f"{terminal:4}", end=" ")
-    print()
-    print("-" * (5 + 5 * len(terminals)))
-    
-    # Print table content
+    # Print header for the automaton
+    print(" {", ",".join(non_terminals), "},", entry_order[0], ",", "{", ",".join(terminals), "};", sep="", end="")
+
+    # Print transitions
+    transitions = []
     for non_terminal in non_terminals:
-        print(f"{non_terminal} | ", end="")
         for terminal in terminals:
             if terminal in ll1[non_terminal]:
-                print(f"{ll1[non_terminal][terminal]:4}", end=" ")
-            else:
-                print("    ", end=" ")
-        print()
-
+                prod_num = ll1[non_terminal][terminal]
+                transitions.append(f"[{non_terminal},{terminal},{prod_num}]")
+    print("".join(transitions))
+    
 """
 Teste 1
  -> Input: E = TA; A = mTA; A = &; T = FB; B = vFB; B = &; F = i; F = oEc;
@@ -130,30 +130,56 @@ Teste 2
 Teste 3
  -> Input: P = KVC; K = cK; K = &; V = vV; V = F; F = fPiF; F = &; C = bVCe; C = miC; C = &;
  -> Output: {C,F,K,P,V},P,{b,c,e,f,i,m,v,$};[C,b,8][C,e,10][C,i,10][C,m,9][C,$,10][F,b,7][F,e,7][F,f,6][F,i,7][F,m,7][F,$,7][K,b,3][K,c,2][K,f,3][K,i,3][K,m,3][K,v,3][K,$,3][P,b,1][P,c,1][P,f,1][P,i,1][P,m,1][P,v,1][P,$,1][V,b,5][V,e,5][V,f,5][V,i,5][V,m,5][V,v,4][V,$,5]
-
-
 """
 
-def ll1(grammar:dict, firsts:dict, follows:dict) -> dict:
-    ll1_table = defaultdict(dict)    
-    for left, prods in grammar.items():
-        for prod in prods:
+def ll1(grammar: dict, firsts: dict, follows: dict, entry_order: list) -> dict:
+    ll1_table = defaultdict(dict)
+    prod_num = 1
+    prod_map = {}
+
+    # Map each production to a unique number
+    for non_terminal in entry_order:
+        for prod in grammar[non_terminal]:
+            if DEBUG_LL1:
+                print(f"Prod {prod_num}: {non_terminal} -> {prod}")
+            prod_map[(non_terminal, tuple(prod))] = prod_num
+            prod_num += 1
+
+    for left in entry_order:
+        for prod in grammar[left]:
             first_set = set()
+            if DEBUG_LL1:
+                print(f"Checking [{left} -> {prod}]")
             for sym in prod:
                 if sym.islower() or sym == "&":
                     first_set.add(sym)
+                    if DEBUG_LL1:
+                        print(f"->-> Adding {sym} to first_set")
                     break
                 first_set |= firsts[sym]
+                if DEBUG_LL1:
+                    print(f"->-> Adding FIRST[{sym}] = {firsts[sym]} to first_set")
                 if "&" not in firsts[sym]:
+                    first_set -= {"&"}
+                    if DEBUG_LL1:
+                        print(f"{sym} is not nullable, stopping")
                     break
+                if DEBUG_LL1:
+                    print(f"{sym} is nullable, continuing")
             if "&" in first_set:
                 first_set -= {"&"}
-                first_set |= follows[left] - {"$"}
+                first_set |= follows[left]
+                if DEBUG_LL1:
+                    print(f"->Symbols in {prod} from {left} are nullable,",
+                          f"\n->Adding FOLLOW[{left}] = {follows[left]} to first_set")
             for terminal in first_set:
                 if terminal in ll1_table[left]:
                     print(f"Conflito encontrado em {left} -> {prod}")
                     return None  # Grammar is not LL(1)
-                ll1_table[left][terminal] = prod
+                ll1_table[left][terminal] = prod_map[(left, tuple(prod))]
+        if DEBUG_LL1:
+            print("-------------\nLL1 table became\n->",
+                  "\n-> ".join([(str(k) + ", " + str(f)) for k, f in ll1_table.items()]))
     return ll1_table
 
 def main():
@@ -162,16 +188,19 @@ def main():
     follows = follow(grammar, firsts, entry_order)
     if is_left_recursive(grammar) or is_not_factored(grammar, firsts, follows):
         return 1
-    LL1 = ll1(grammar, firsts, follows)
-    print_ll1(LL1)
+    LL1 = ll1(grammar, firsts, follows, entry_order)
+    if LL1 is None:
+        print("A gramática não é LL(1)")
+    else:
+        print_ll1(LL1, entry_order)
 
 if __name__ == '__main__':
     while True:
         try:
             main()
             # break
-            if DEBUG_LR or DEBUG_NF:
-                print("\n-----------------------------\n-----------------------------\n")
+            if DEBUG_LR or DEBUG_NF or DEBUG_LL1:
+                print("\n-----------------------------\n New Test \n-----------------------------\n")
         except EOFError:
             break
 

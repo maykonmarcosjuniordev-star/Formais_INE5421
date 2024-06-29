@@ -84,6 +84,7 @@ def recur_first(grammar:dict, left:str, firsts:dict, rec_fathers:list=[]) -> set
         if DEBUG_FIRST:
             print("definido", left, prod, "ficou:")
             print("->", firsts)
+    rec_fathers.pop()
     return firsts[left]
 
 
